@@ -1,0 +1,4 @@
+demucs==4.0.1
+boto3==1.37.38
+botocore==1.37.38
+ffmpeg-python==0.2.0
