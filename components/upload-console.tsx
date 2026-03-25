@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { StemPlayer } from "@/components/stem-player";
 import type { StoredJobStatus } from "@/lib/jobs";
 
 type UploadReservation = {
@@ -287,24 +287,18 @@ export function UploadConsole() {
                   {job.remoteStatus?.stems?.length ? (
                     <ul className="stem-list">
                       {job.remoteStatus.stems.map((stem) => (
-                        <li className="stem-card" key={stem.key}>
-                          <div className="stem-icon-wrap">
-                            <Image
-                              src={getStemIconPath(stem.name)}
-                              alt={stem.name}
-                              width={26}
-                              height={26}
-                              className="stem-icon"
-                            />
-                          </div>
-                          {stem.url ? (
-                            <a className="link-button" href={stem.url} target="_blank" rel="noreferrer">
-                              Download stem
-                            </a>
-                          ) : (
-                            <span className="small muted">Preparing download link...</span>
-                          )}
-                        </li>
+                        stem.url ? (
+                          <StemPlayer
+                            key={stem.key}
+                            iconSrc={getStemIconPath(stem.name)}
+                            label={stem.name}
+                            url={stem.url}
+                          />
+                        ) : (
+                          <li className="stem-card" key={stem.key}>
+                            <div className="stem-player-wave muted">Preparing player...</div>
+                          </li>
+                        )
                       ))}
                     </ul>
                   ) : null}

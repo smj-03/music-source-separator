@@ -277,13 +277,12 @@ input {
 .stem-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 18px;
 }
 
-.stem-icon-wrap {
-  width: 52px;
-  height: 52px;
+.stem-player-icon {
+  width: 58px;
+  height: 58px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -295,6 +294,105 @@ input {
   height: 42px;
   opacity: 0.78;
   filter: grayscale(1) brightness(0) invert(76%);
+}
+
+.stem-player-wave {
+  flex: 1 1 auto;
+  min-width: 180px;
+  display: grid;
+  gap: 10px;
+}
+
+.stem-play-toggle {
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.stem-play-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.play-glyph {
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 14px solid var(--text);
+}
+
+.pause-glyph {
+  position: relative;
+  width: 14px;
+  height: 16px;
+}
+
+.pause-glyph::before,
+.pause-glyph::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--text);
+}
+
+.pause-glyph::before {
+  left: 1px;
+}
+
+.pause-glyph::after {
+  right: 1px;
+}
+
+.waveform {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.waveform-bar {
+  flex: 1 1 0;
+  min-width: 3px;
+  border-radius: 999px;
+  align-self: center;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 140ms ease;
+}
+
+.waveform-bar.active {
+  background: rgba(156, 46, 75, 0.92);
+}
+
+.stem-player-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stem-player-actions {
+  min-width: 112px;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
 }
 
 .link-button {
@@ -311,4 +409,16 @@ input {
 .job-id {
   opacity: 0.58;
   text-align: center;
+}
+
+@media (max-width: 720px) {
+  .stem-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .stem-player-actions {
+    width: 100%;
+    justify-items: start;
+  }
 }
