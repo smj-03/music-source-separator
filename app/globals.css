@@ -272,14 +272,34 @@ input {
 
 .library-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(110px, 0.34fr) minmax(620px, 2.1fr) 132px;
   align-items: center;
   gap: 16px;
 }
 
 .library-copy strong {
   display: block;
-  margin-bottom: 6px;
+  margin: 3px 0 0;
+}
+
+.track-player {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.track-player-wave {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.track-player-placeholder {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
 }
 
 .job-card strong,
@@ -376,7 +396,7 @@ input {
 }
 
 .waveform {
-  height: 58px;
+  height: 42px;
   display: flex;
   align-items: center;
   gap: 3px;
@@ -429,6 +449,10 @@ input {
   .library-card {
     grid-template-columns: 1fr;
     justify-items: start;
+  }
+
+  .track-player {
+    width: 100%;
   }
 
   .stem-card {

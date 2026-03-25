@@ -120,6 +120,27 @@ export async function attachStemUrls(stems: StemAsset[]) {
   );
 }
 
+export async function createSignedInputUrl(key: string) {
+  const client = getS3Client();
+  const inputBucket = getEnv("AWS_INPUT_BUCKET");
+
+  await client.send(
+    new HeadObjectCommand({
+      Bucket: inputBucket,
+      Key: key,
+    }),
+  );
+
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({
+      Bucket: inputBucket,
+      Key: key,
+    }),
+    { expiresIn: 3600 },
+  );
+}
+
 export function buildStemAssets(jobId: string, stems: string[]): StemAsset[] {
   return stems.map((stemName) => ({
     name: stemName,

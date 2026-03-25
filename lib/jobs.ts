@@ -30,6 +30,7 @@ export type LibraryTrackRecord = {
   jobId: string;
   trackName: string;
   inputKey: string;
+  inputUrl?: string;
   status: JobStatus;
   requestedAt: string;
   updatedAt: string;

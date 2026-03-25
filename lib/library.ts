@@ -3,7 +3,7 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { getDynamoDbClient } from "@/lib/aws";
 import { getOptionalEnv } from "@/lib/config";
 import type { LibraryTrackRecord, StoredJobStatus } from "@/lib/jobs";
-import { attachStemUrls } from "@/lib/s3-status";
+import { attachStemUrls, createSignedInputUrl } from "@/lib/s3-status";
 
 function getTracksTableName() {
   return getOptionalEnv("AWS_TRACKS_TABLE");
@@ -52,6 +52,7 @@ export async function listLibraryTracks() {
   const enrichedItems = await Promise.all(
     items.map(async (item) => ({
       ...item,
+      inputUrl: item.inputKey ? await createSignedInputUrl(item.inputKey) : undefined,
       stems: item.stems?.length ? await attachStemUrls(item.stems) : item.stems,
     })),
   );

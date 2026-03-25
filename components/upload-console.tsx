@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { StemPlayer } from "@/components/stem-player";
+import { TrackPlayer } from "@/components/track-player";
 import type { LibraryTrackRecord, StoredJobStatus } from "@/lib/jobs";
 
 type UploadReservation = {
@@ -185,6 +186,25 @@ export function UploadConsole() {
     );
 
     setJobs(updates);
+
+    const currentSnapshot = JSON.stringify(
+      currentJobs.map((job) => ({
+        jobId: job.jobId,
+        status: job.remoteStatus?.status ?? job.uploadState,
+        stems: job.remoteStatus?.stems?.length ?? 0,
+      })),
+    );
+    const nextSnapshot = JSON.stringify(
+      updates.map((job) => ({
+        jobId: job.jobId,
+        status: job.remoteStatus?.status ?? job.uploadState,
+        stems: job.remoteStatus?.stems?.length ?? 0,
+      })),
+    );
+
+    if (currentSnapshot !== nextSnapshot) {
+      void refreshLibrary();
+    }
   }
 
   async function refreshLibrary() {
@@ -224,7 +244,6 @@ export function UploadConsole() {
   useEffect(() => {
     pollRef.current = window.setInterval(() => {
       void pollJobs();
-      void refreshLibrary();
     }, 5000);
 
     return () => {
@@ -308,6 +327,7 @@ export function UploadConsole() {
 
       await uploadFile(selectedFile, reservation);
       await enqueueJob(reservation.jobId, resolvedTrackName, reservation.key);
+      void refreshLibrary();
 
       setJobs((current) =>
         current.map((job) =>
@@ -386,32 +406,6 @@ export function UploadConsole() {
       </section>
 
       <section className="panel" style={{ gridColumn: "1 / -1" }}>
-        <h2>Library</h2>
-        {completedLibraryTracks.length === 0 ? (
-          <p className="muted">No completed songs yet.</p>
-        ) : (
-          <ul className="library-list">
-            {completedLibraryTracks.map((track) => {
-              return (
-                <li className="library-card" key={track.jobId}>
-                  <div className="library-copy">
-                    <strong>{track.trackName}</strong>
-                  </div>
-                  <button
-                    className="button secondary"
-                    type="button"
-                    onClick={() => loadLibraryTrack(track)}
-                  >
-                    Load stems
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      <section className="panel" style={{ gridColumn: "1 / -1" }}>
         <h2>Jobs</h2>
         {jobs.length === 0 ? (
           <p className="muted">No jobs yet.</p>
@@ -449,6 +443,37 @@ export function UploadConsole() {
                   ) : null}
 
                   <p className="small muted job-id">{job.jobId}</p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <section className="panel" style={{ gridColumn: "1 / -1" }}>
+        <h2>Library</h2>
+        {completedLibraryTracks.length === 0 ? (
+          <p className="muted">No completed songs yet.</p>
+        ) : (
+          <ul className="library-list">
+            {completedLibraryTracks.map((track) => {
+              return (
+                <li className="library-card" key={track.jobId}>
+                  <div className="library-copy">
+                    <strong>{track.trackName}</strong>
+                  </div>
+                  {track.inputUrl ? (
+                    <TrackPlayer label={track.trackName} url={track.inputUrl} />
+                  ) : (
+                    <div className="track-player-placeholder muted">Original track unavailable</div>
+                  )}
+                  <button
+                    className="button secondary"
+                    type="button"
+                    onClick={() => loadLibraryTrack(track)}
+                  >
+                    Load Stems
+                  </button>
                 </li>
               );
             })}
