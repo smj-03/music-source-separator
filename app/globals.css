@@ -147,7 +147,8 @@ input {
 .button {
   border: 0;
   border-radius: 999px;
-  padding: 12px 18px;
+  height: 44px;
+  padding: 0 18px;
   background: var(--accent);
   color: white;
   cursor: pointer;
@@ -181,7 +182,7 @@ input {
 
 .file-name {
   flex: 1 1 240px;
-  min-height: 48px;
+  height: 44px;
   display: flex;
   align-items: center;
   padding: 0 16px;
@@ -217,6 +218,22 @@ input {
   font-size: 0.95rem;
 }
 
+.job-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.job-status-text {
+  margin: 0;
+}
+
+.status-pill.pending {
+  color: #ffb057;
+  background: rgba(255, 176, 87, 0.12);
+}
+
 .status-pill.success {
   color: var(--success);
   background: rgba(31, 122, 79, 0.12);
@@ -246,15 +263,42 @@ input {
   border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+.job-card {
+  display: grid;
+  gap: 18px;
+}
+
 .job-card strong,
 .stem-card strong {
   display: block;
   margin-bottom: 6px;
 }
 
+.stem-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.stem-icon-wrap {
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.stem-icon {
+  width: 42px;
+  height: 42px;
+  opacity: 0.78;
+  filter: grayscale(1) brightness(0) invert(76%);
+}
+
 .link-button {
   display: inline-block;
-  margin-top: 8px;
   text-decoration: none;
   color: var(--accent-dark);
   font-weight: 700;
@@ -262,4 +306,9 @@ input {
 
 .small {
   font-size: 0.9rem;
+}
+
+.job-id {
+  opacity: 0.58;
+  text-align: center;
 }

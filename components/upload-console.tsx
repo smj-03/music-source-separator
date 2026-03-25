@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { StoredJobStatus } from "@/lib/jobs";
 
@@ -16,6 +17,24 @@ type LocalJobState = {
   uploadMessage: string;
   remoteStatus?: StoredJobStatus;
 };
+
+function getDisplayStatus(job: LocalJobState) {
+  const status = job.remoteStatus?.status;
+
+  if (status === "completed") {
+    return { label: "Completed", className: "status-pill success" };
+  }
+
+  if (status === "failed" || job.uploadState === "error") {
+    return { label: "Failed", className: "status-pill error" };
+  }
+
+  return { label: "Pending", className: "status-pill pending" };
+}
+
+function getStemIconPath(stemName: string) {
+  return `/icons/stems/${stemName}.svg`;
+}
 
 async function reserveUpload(file: File): Promise<UploadReservation> {
   const response = await fetch("/api/uploads", {
@@ -221,10 +240,6 @@ export function UploadConsole() {
     <div className="panel-grid">
       <section className="panel" style={{ gridColumn: "1 / -1" }}>
         <h2>Upload Track</h2>
-        <p className="muted">
-          Audio is uploaded directly to S3. Once the upload completes, the app sends a job to SQS
-          and an EC2 worker runs Demucs to generate stems.
-        </p>
 
         <form className="stack" onSubmit={handleSubmit}>
           <div className="field">
@@ -258,28 +273,30 @@ export function UploadConsole() {
         ) : (
           <ul className="job-list">
             {jobs.map((job) => {
-              const remoteStatus = job.remoteStatus?.status;
-              const pillClassName =
-                remoteStatus === "completed"
-                  ? "status-pill success"
-                  : remoteStatus === "failed"
-                    ? "status-pill error"
-                    : "status-pill";
+              const displayStatus = getDisplayStatus(job);
 
               return (
                 <li className="job-card" key={job.jobId}>
-                  <strong>{job.trackName}</strong>
-                  <div className={pillClassName}>{remoteStatus ?? job.uploadState}</div>
-                  <p className="small muted">
-                    {job.remoteStatus?.message ?? job.uploadMessage}
-                  </p>
-                  <p className="small muted">Job ID: {job.jobId}</p>
+                  <div className="job-status-row">
+                    <div className={displayStatus.className}>{displayStatus.label}</div>
+                    {job.remoteStatus?.message ? (
+                      <p className="small muted job-status-text">{job.remoteStatus.message}</p>
+                    ) : null}
+                  </div>
 
                   {job.remoteStatus?.stems?.length ? (
                     <ul className="stem-list">
                       {job.remoteStatus.stems.map((stem) => (
                         <li className="stem-card" key={stem.key}>
-                          <strong>{stem.name}</strong>
+                          <div className="stem-icon-wrap">
+                            <Image
+                              src={getStemIconPath(stem.name)}
+                              alt={stem.name}
+                              width={26}
+                              height={26}
+                              className="stem-icon"
+                            />
+                          </div>
                           {stem.url ? (
                             <a className="link-button" href={stem.url} target="_blank" rel="noreferrer">
                               Download stem
@@ -291,6 +308,8 @@ export function UploadConsole() {
                       ))}
                     </ul>
                   ) : null}
+
+                  <p className="small muted job-id">{job.jobId}</p>
                 </li>
               );
             })}
