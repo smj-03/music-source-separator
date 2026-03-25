@@ -81,7 +81,6 @@ async function getStatus(jobId: string): Promise<StoredJobStatus> {
 }
 
 export function UploadConsole() {
-  const [trackName, setTrackName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [jobs, setJobs] = useState<LocalJobState[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -157,7 +156,7 @@ export function UploadConsole() {
     try {
       const reservation = await reserveUpload(selectedFile);
       pendingJobId = reservation.jobId;
-      const resolvedTrackName = trackName.trim() || selectedFile.name.replace(/\.[^/.]+$/, "");
+      const resolvedTrackName = selectedFile.name.replace(/\.[^/.]+$/, "");
 
       setJobs((current) => [
         {
@@ -185,7 +184,6 @@ export function UploadConsole() {
       );
 
       setSelectedFile(null);
-      setTrackName("");
       form.reset();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unexpected upload failure.";
@@ -194,7 +192,7 @@ export function UploadConsole() {
         setJobs((current) => [
           {
             jobId: crypto.randomUUID(),
-            trackName: trackName.trim() || selectedFile.name.replace(/\.[^/.]+$/, ""),
+            trackName: selectedFile.name.replace(/\.[^/.]+$/, ""),
             uploadState: "error",
             uploadMessage: message,
           },
@@ -221,7 +219,7 @@ export function UploadConsole() {
 
   return (
     <div className="panel-grid">
-      <section className="panel">
+      <section className="panel" style={{ gridColumn: "1 / -1" }}>
         <h2>Upload Track</h2>
         <p className="muted">
           Audio is uploaded directly to S3. Once the upload completes, the app sends a job to SQS
@@ -230,45 +228,28 @@ export function UploadConsole() {
 
         <form className="stack" onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="trackName">Track name</label>
-            <input
-              id="trackName"
-              type="text"
-              name="trackName"
-              placeholder="Example: Midnight Session"
-              value={trackName}
-              onChange={(event) => setTrackName(event.target.value)}
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="audioFile">Audio file</label>
-            <input
-              id="audioFile"
-              type="file"
-              name="audioFile"
-              accept="audio/*"
-              onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
-            />
-          </div>
-
-          <div className="button-row">
-            <button className="button" type="submit" disabled={!selectedFile || submitting}>
+            <div className="upload-row">
+              <label className="button secondary file-button" htmlFor="audioFile">
+                Browse File
+              </label>
+              <input
+                id="audioFile"
+                className="sr-only"
+                type="file"
+                name="audioFile"
+                accept="audio/*"
+                onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+              />
+              <div className="file-name">
+                {selectedFile ? selectedFile.name : "No file selected"}
+              </div>
+              <button className="button" type="submit" disabled={!selectedFile || submitting}>
               {submitting ? "Uploading..." : "Upload and Separate"}
-            </button>
+              </button>
+            </div>
           </div>
         </form>
       </section>
-
-      <aside className="panel">
-        <h3>AWS Flow</h3>
-        <ul className="info-list">
-          <li className="info-card">1. Browser uploads the source file directly to the input S3 bucket.</li>
-          <li className="info-card">2. Next.js enqueues an SQS message with the job metadata.</li>
-          <li className="info-card">3. EC2 worker downloads audio, runs Demucs, and uploads stems to S3.</li>
-          <li className="info-card">4. The worker writes `status.json` so the UI can poll progress and fetch results.</li>
-        </ul>
-      </aside>
 
       <section className="panel" style={{ gridColumn: "1 / -1" }}>
         <h2>Jobs</h2>

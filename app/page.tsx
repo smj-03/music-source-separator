@@ -5,11 +5,11 @@ export default function HomePage() {
     <main className="page-shell">
       <div className="page-grid">
         <section className="hero">
-          <p className="eyebrow">Next.js + AWS + Demucs</p>
-          <h1>Separate vocals, drums, bass, and more.</h1>
+          <h1>Separate music sources.</h1>
           <p>
-            StemSplit is a simple front end for music source separation. Upload a song, store the
-            source and separated stems in S3, then let an EC2 worker process the track with Demucs.
+            Upload a song and split it into the standard Demucs stems: vocals, drums, bass, and
+            other. The original file is stored in S3, processed on EC2, and the separated results
+            are returned as downloadable stem files when the job completes.
           </p>
         </section>
 
