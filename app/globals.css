@@ -246,6 +246,7 @@ input {
 
 .job-list,
 .stem-list,
+.library-list,
 .info-list {
   display: grid;
   gap: 10px;
@@ -256,6 +257,7 @@ input {
 
 .job-card,
 .stem-card,
+.library-card,
 .info-card {
   padding: 16px;
   border-radius: 18px;
@@ -266,6 +268,18 @@ input {
 .job-card {
   display: grid;
   gap: 18px;
+}
+
+.library-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.library-copy strong {
+  display: block;
+  margin-bottom: 6px;
 }
 
 .job-card strong,
@@ -412,6 +426,11 @@ input {
 }
 
 @media (max-width: 720px) {
+  .library-card {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
   .stem-card {
     align-items: flex-start;
     flex-wrap: wrap;

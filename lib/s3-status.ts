@@ -111,6 +111,15 @@ async function createDownloadUrl(key: string) {
   );
 }
 
+export async function attachStemUrls(stems: StemAsset[]) {
+  return Promise.all(
+    stems.map(async (stem) => ({
+      ...stem,
+      url: await createDownloadUrl(stem.key),
+    })),
+  );
+}
+
 export function buildStemAssets(jobId: string, stems: string[]): StemAsset[] {
   return stems.map((stemName) => ({
     name: stemName,

@@ -26,6 +26,17 @@ export type StoredJobStatus = {
   stems?: StemAsset[];
 };
 
+export type LibraryTrackRecord = {
+  jobId: string;
+  trackName: string;
+  inputKey: string;
+  status: JobStatus;
+  requestedAt: string;
+  updatedAt: string;
+  message?: string;
+  stems?: StemAsset[];
+};
+
 export function buildStatusKey(jobId: string) {
   return `jobs/${jobId}/status.json`;
 }

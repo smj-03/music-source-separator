@@ -26,6 +26,7 @@ Copy `.env.example` to `.env.local` for local development and provide:
 - `AWS_INPUT_BUCKET`
 - `AWS_OUTPUT_BUCKET`
 - `AWS_QUEUE_URL`
+- `AWS_TRACKS_TABLE`
 - `AWS_SIGNED_URL_TTL_SECONDS`
 
 ## Local Web App Setup
@@ -74,6 +75,7 @@ python3 poll_queue.py
 
 - One private S3 bucket for uploads and one private S3 bucket for outputs.
 - One standard SQS queue for Demucs jobs.
+- One DynamoDB table for track/job metadata, using `jobId` as the partition key.
 - One EC2 IAM role with permission to `s3:GetObject`, `s3:PutObject`, `sqs:ReceiveMessage`, and `sqs:DeleteMessage`.
 - One Next.js runtime with permission to sign S3 uploads and enqueue SQS messages.
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { StemPlayer } from "@/components/stem-player";
-import type { StoredJobStatus } from "@/lib/jobs";
+import type { LibraryTrackRecord, StoredJobStatus } from "@/lib/jobs";
 
 type UploadReservation = {
   jobId: string;
@@ -99,12 +99,55 @@ async function getStatus(jobId: string): Promise<StoredJobStatus> {
   return response.json();
 }
 
+async function getLibraryTracks(): Promise<LibraryTrackRecord[]> {
+  const response = await fetch("/api/library", {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch library tracks.");
+  }
+
+  const payload = (await response.json()) as { tracks: LibraryTrackRecord[] };
+  return payload.tracks;
+}
+
+function shouldReplaceRemoteStatus(
+  currentStatus: StoredJobStatus | undefined,
+  incomingTrack: LibraryTrackRecord,
+) {
+  if (!currentStatus) {
+    return true;
+  }
+
+  const currentHasStems = Boolean(currentStatus.stems?.length);
+  const incomingHasStems = Boolean(incomingTrack.stems?.length);
+
+  if (currentHasStems && !incomingHasStems) {
+    return false;
+  }
+
+  if (
+    currentStatus.status === "completed" &&
+    incomingTrack.status !== "completed" &&
+    currentHasStems
+  ) {
+    return false;
+  }
+
+  return incomingTrack.updatedAt >= currentStatus.updatedAt;
+}
+
 export function UploadConsole() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [jobs, setJobs] = useState<LocalJobState[]>([]);
+  const [libraryTracks, setLibraryTracks] = useState<LibraryTrackRecord[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const jobsRef = useRef<LocalJobState[]>([]);
   const pollRef = useRef<number | null>(null);
+  const completedLibraryTracks = libraryTracks.filter(
+    (track) => track.status === "completed" && Boolean(track.stems?.length),
+  );
 
   jobsRef.current = jobs;
 
@@ -144,9 +187,44 @@ export function UploadConsole() {
     setJobs(updates);
   }
 
+  async function refreshLibrary() {
+    try {
+      const tracks = await getLibraryTracks();
+      setLibraryTracks(tracks);
+      setJobs((current) =>
+        current.map((job) => {
+          const matchingTrack = tracks.find((track) => track.jobId === job.jobId);
+
+          if (!matchingTrack || !shouldReplaceRemoteStatus(job.remoteStatus, matchingTrack)) {
+            return job;
+          }
+
+          return {
+            ...job,
+            trackName: matchingTrack.trackName,
+            uploadState: matchingTrack.status === "failed" ? "error" : "uploaded",
+            uploadMessage: matchingTrack.message ?? job.uploadMessage,
+            remoteStatus: {
+              jobId: matchingTrack.jobId,
+              trackName: matchingTrack.trackName,
+              status: matchingTrack.status,
+              requestedAt: matchingTrack.requestedAt,
+              updatedAt: matchingTrack.updatedAt,
+              message: matchingTrack.message,
+              stems: matchingTrack.stems,
+            },
+          };
+        }),
+      );
+    } catch {
+      return;
+    }
+  }
+
   useEffect(() => {
     pollRef.current = window.setInterval(() => {
       void pollJobs();
+      void refreshLibrary();
     }, 5000);
 
     return () => {
@@ -159,7 +237,48 @@ export function UploadConsole() {
 
   useEffect(() => {
     void pollJobs();
+    void refreshLibrary();
   }, [jobs.length]);
+
+  function loadLibraryTrack(track: LibraryTrackRecord) {
+    const remoteStatus: StoredJobStatus = {
+      jobId: track.jobId,
+      trackName: track.trackName,
+      status: track.status,
+      requestedAt: track.requestedAt,
+      updatedAt: track.updatedAt,
+      message: track.message,
+      stems: track.stems,
+    };
+
+    setJobs((current) => {
+      const existingJob = current.find((job) => job.jobId === track.jobId);
+
+      if (existingJob) {
+        return current.map((job) =>
+          job.jobId === track.jobId
+            ? {
+                ...job,
+                uploadState: track.status === "failed" ? "error" : "uploaded",
+                uploadMessage: track.message ?? "",
+                remoteStatus,
+              }
+            : job,
+        );
+      }
+
+      return [
+        {
+          jobId: track.jobId,
+          trackName: track.trackName,
+          uploadState: track.status === "failed" ? "error" : "uploaded",
+          uploadMessage: track.message ?? "",
+          remoteStatus,
+        },
+        ...current,
+      ];
+    });
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -264,6 +383,32 @@ export function UploadConsole() {
             </div>
           </div>
         </form>
+      </section>
+
+      <section className="panel" style={{ gridColumn: "1 / -1" }}>
+        <h2>Library</h2>
+        {completedLibraryTracks.length === 0 ? (
+          <p className="muted">No completed songs yet.</p>
+        ) : (
+          <ul className="library-list">
+            {completedLibraryTracks.map((track) => {
+              return (
+                <li className="library-card" key={track.jobId}>
+                  <div className="library-copy">
+                    <strong>{track.trackName}</strong>
+                  </div>
+                  <button
+                    className="button secondary"
+                    type="button"
+                    onClick={() => loadLibraryTrack(track)}
+                  >
+                    Load stems
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
       <section className="panel" style={{ gridColumn: "1 / -1" }}>

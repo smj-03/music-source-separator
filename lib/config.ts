@@ -17,6 +17,10 @@ export function getEnv(name: (typeof requiredVars)[number]) {
   return value;
 }
 
+export function getOptionalEnv(name: string) {
+  return process.env[name];
+}
+
 export function getSignedUrlTtlSeconds() {
   const rawValue = process.env.AWS_SIGNED_URL_TTL_SECONDS ?? "900";
   const parsed = Number(rawValue);

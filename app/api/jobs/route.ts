@@ -5,8 +5,10 @@ import { getEnv } from "@/lib/config";
 import {
   buildStatusKey,
   type DemucsJobMessage,
+  type LibraryTrackRecord,
   type StoredJobStatus,
 } from "@/lib/jobs";
+import { upsertLibraryTrack } from "@/lib/library";
 import { writeInitialStatus } from "@/lib/s3-status";
 
 const createJobSchema = z.object({
@@ -39,6 +41,17 @@ export async function POST(request: Request) {
   };
 
   await writeInitialStatus(statusKey, initialStatus);
+  const initialRecord: LibraryTrackRecord = {
+    jobId,
+    trackName,
+    inputKey,
+    status: "queued",
+    requestedAt: initialStatus.requestedAt,
+    updatedAt: initialStatus.updatedAt,
+    message: initialStatus.message,
+    stems: [],
+  };
+  await upsertLibraryTrack(initialRecord);
 
   const message: DemucsJobMessage = {
     jobId,

@@ -25,6 +25,27 @@ def write_status(s3_client, bucket, key, payload):
     )
 
 
+def write_library_record(job, payload):
+    table_name = os.environ.get("AWS_TRACKS_TABLE")
+    if not table_name:
+        return
+
+    dynamodb = boto3.resource("dynamodb")
+    table = dynamodb.Table(table_name)
+    table.put_item(
+        Item={
+            "jobId": job["jobId"],
+            "trackName": job["trackName"],
+            "inputKey": job["inputKey"],
+            "status": payload["status"],
+            "requestedAt": payload["requestedAt"],
+            "updatedAt": payload["updatedAt"],
+            "message": payload.get("message"),
+            "stems": payload.get("stems", []),
+        }
+    )
+
+
 def upload_file(s3_client, bucket, source_path, destination_key):
     s3_client.upload_file(str(source_path), bucket, destination_key)
 
@@ -76,6 +97,7 @@ def process_message(job):
         "message": "Worker picked up the job and is running Demucs.",
     }
     write_status(s3_client, output_bucket, status_key, initial_status)
+    write_library_record(job, initial_status)
 
     temp_dir = Path(tempfile.mkdtemp(prefix=f"demucs-{job_id}-"))
 
@@ -109,6 +131,7 @@ def process_message(job):
             "stems": stem_descriptors,
         }
         write_status(s3_client, output_bucket, status_key, final_status)
+        write_library_record(job, final_status)
     except Exception as error:
         failed_status = {
             "jobId": job_id,
@@ -119,6 +142,7 @@ def process_message(job):
             "message": str(error),
         }
         write_status(s3_client, output_bucket, status_key, failed_status)
+        write_library_record(job, failed_status)
         raise
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
