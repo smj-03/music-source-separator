@@ -94,7 +94,10 @@ export function UploadConsole() {
     const currentJobs = jobsRef.current;
     const hasActiveJobs = currentJobs.some((job) => {
       const status = job.remoteStatus?.status;
-      return status === "queued" || status === "processing" || !status;
+      return (
+        job.uploadState !== "error" &&
+        (status === "queued" || status === "processing" || !status)
+      );
     });
 
     if (!hasActiveJobs) {
@@ -103,6 +106,10 @@ export function UploadConsole() {
 
     const updates = await Promise.all(
       currentJobs.map(async (job) => {
+        if (job.uploadState === "error") {
+          return job;
+        }
+
         if (job.remoteStatus?.status === "completed" || job.remoteStatus?.status === "failed") {
           return job;
         }
@@ -138,6 +145,7 @@ export function UploadConsole() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
 
     if (!selectedFile) {
       return;
@@ -178,7 +186,6 @@ export function UploadConsole() {
 
       setSelectedFile(null);
       setTrackName("");
-      const form = event.currentTarget;
       form.reset();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unexpected upload failure.";
